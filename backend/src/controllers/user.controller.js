@@ -42,6 +42,11 @@ const loginUser = async (req, res) => {
         //checking if the user already exists
         const {email, password} = req.body;
 
+        // basic validation
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+
         const user = await User.findOne({
             email: email.toLowerCase()
         });
@@ -51,9 +56,11 @@ const loginUser = async (req, res) => {
         });
 
         //compare the password
-        const isMatch = await user.compare.password(password);
+        const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            return res.status(400).json({message: "Invalid credentials"});
+            return res.status(400).json({
+                message: "Invalid credentials"
+            });
         }
 
         res.status(200).json({
@@ -67,11 +74,38 @@ const loginUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Internal Server Error",
+            error: error.message
         })
     }
-}
+};
+
+const logoutUser =  async (req, res) => {
+    try {
+        const {email} = req.body
+
+        const user = await User.findOne({
+            email
+        });
+
+        if (!user) return res.status(404).json ({
+            message: "User not found"
+        });
+
+        res.status(200).json({
+            message: "Logout succesful"
+        });
+
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal Server Error", error
+        });
+        
+    }
+};
 
 export {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 }
